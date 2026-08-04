@@ -11,8 +11,8 @@ export type CoachMessage = {
   id: string;
   role: "coach" | "learner";
   text: string;
-  encouragement?: string;
-  gentleNote?: string;
+  encouragement?: string | undefined;
+  gentleNote?: string | undefined;
 };
 
 export type PronunciationReport = {
@@ -47,7 +47,7 @@ const followUps = [
   "Thanks for sharing. What's one thing you'd change about it?",
 ];
 
-const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
+const pick = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)] as T;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Replace with a Gemini conversation call (streamed) behind a server function. */
