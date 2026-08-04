@@ -10,12 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AchievementsRouteImport } from './routes/achievements'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as PracticeRouteImport } from './routes/practice'
+import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as PronunciationRouteImport } from './routes/pronunciation'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AchievementsRoute = AchievementsRouteImport.update({
+  id: '/achievements',
+  path: '/achievements',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -28,35 +37,88 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PracticeRoute = PracticeRouteImport.update({
+  id: '/practice',
+  path: '/practice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgressRoute = ProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PronunciationRoute = PronunciationRouteImport.update({
+  id: '/pronunciation',
+  path: '/pronunciation',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/achievements': typeof AchievementsRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/practice': typeof PracticeRoute
+  '/progress': typeof ProgressRoute
+  '/pronunciation': typeof PronunciationRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/achievements': typeof AchievementsRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/practice': typeof PracticeRoute
+  '/progress': typeof ProgressRoute
+  '/pronunciation': typeof PronunciationRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/achievements': typeof AchievementsRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/practice': typeof PracticeRoute
+  '/progress': typeof ProgressRoute
+  '/pronunciation': typeof PronunciationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/achievements'
+    | '/auth'
+    | '/dashboard'
+    | '/practice'
+    | '/progress'
+    | '/pronunciation'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard'
-  id: '__root__' | '/' | '/auth' | '/dashboard'
+  to:
+    | '/'
+    | '/achievements'
+    | '/auth'
+    | '/dashboard'
+    | '/practice'
+    | '/progress'
+    | '/pronunciation'
+  id:
+    | '__root__'
+    | '/'
+    | '/achievements'
+    | '/auth'
+    | '/dashboard'
+    | '/practice'
+    | '/progress'
+    | '/pronunciation'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AchievementsRoute: typeof AchievementsRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
+  PracticeRoute: typeof PracticeRoute
+  ProgressRoute: typeof ProgressRoute
+  PronunciationRoute: typeof PronunciationRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -66,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/achievements': {
+      id: '/achievements'
+      path: '/achievements'
+      fullPath: '/achievements'
+      preLoaderRoute: typeof AchievementsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -82,13 +151,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/practice': {
+      id: '/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof PracticeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/progress': {
+      id: '/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pronunciation': {
+      id: '/pronunciation'
+      path: '/pronunciation'
+      fullPath: '/pronunciation'
+      preLoaderRoute: typeof PronunciationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AchievementsRoute: AchievementsRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
+  PracticeRoute: PracticeRoute,
+  ProgressRoute: ProgressRoute,
+  PronunciationRoute: PronunciationRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
