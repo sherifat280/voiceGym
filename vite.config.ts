@@ -22,7 +22,9 @@ const routes = [
 
 export default defineConfig({
   ...(isVercel ? { nitro: { preset: "vercel" as const } } : {}),
-  ...(isGithubPages ? { nitro: { preset: "static" as const } } : {}),
+  // Pages has no server runtime: skip nitro and emit prerendered HTML only.
+  ...(isGithubPages ? { nitro: false as const } : {}),
+
   tanstackStart: {
     vite: {
       base: process.env['VITE_BASE_PATH'] || process.env['BASE_URL'] || "/",
