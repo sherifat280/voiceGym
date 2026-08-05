@@ -9,7 +9,7 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 export default defineConfig({
   tanstackStart: {
     vite: {
-      base: "/voiceGym",
+      base: process.env.VITE_BASE_PATH || process.env.BASE_URL || "./",
     },
     
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
@@ -17,3 +17,4 @@ export default defineConfig({
     server: { entry: "server" },
   },
 });
+

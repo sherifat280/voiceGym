@@ -306,3 +306,30 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Deployment
+
+### 🚀 Deploying to GitHub Pages (Automated)
+
+This repository includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that automatically builds and deploys your website whenever you push to `main`.
+
+1. Go to your GitHub repository: **Settings -> Pages**.
+2. Under **Build and deployment -> Source**, select **GitHub Actions**.
+3. Push any commit to `main` (or run the workflow manually under **Actions** tab).
+4. GitHub Actions will build the project and deploy it automatically.
+
+### 🚀 Deploying to Vercel
+
+1. Import this repository into **Vercel**.
+2. Vercel automatically detects the `vercel.json` configuration in this repo:
+   - **Framework Preset**: Vite
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `.output/public`
+3. Click **Deploy**.
+
+### 🚀 Deploying to Netlify / Cloudflare Pages / Render
+
+- **Build Command**: `npm run build`
+- **Output Directory**: `.output/public`
+- The `public/_redirects` file handles client-side SPA routing automatically.
+
