@@ -69,6 +69,8 @@ jobs:
         run: |
           if [ -d ".output/public" ]; then
             echo "DEPLOY_DIR=.output/public" >> $GITHUB_ENV
+          elif [ -d "dist/client" ]; then
+            echo "DEPLOY_DIR=dist/client" >> $GITHUB_ENV
           elif [ -d "dist" ]; then
             echo "DEPLOY_DIR=dist" >> $GITHUB_ENV
           else
