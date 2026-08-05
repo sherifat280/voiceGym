@@ -28,16 +28,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Detect package manager / lockfile
+        id: detect_pm
+        run: |
+          # Detect common lockfiles and set output 'pm' to 'npm'|'yarn'|'pnpm'|'none'
+          if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
+            echo "pm=npm" >> $GITHUB_OUTPUT
+          elif [ -f yarn.lock ]; then
+            echo "pm=yarn" >> $GITHUB_OUTPUT
+          elif [ -f pnpm-lock.yaml ]; then
+            echo "pm=pnpm" >> $GITHUB_OUTPUT
+          else
+            echo "pm=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js (with cache when lockfile found)
+        if: steps.detect_pm.outputs.pm != 'none'
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: 20
+          cache: ${{ steps.detect_pm.outputs.pm }}
+
+      - name: Setup Node.js (no cache when no lockfile)
+        if: steps.detect_pm.outputs.pm == 'none'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
       - name: Install dependencies
-        run: bun install
+        run: npm ci || npm install
 
       - name: Build application
-        run: bun run build
+        run: npm run build
         env:
           VITE_BASE_PATH: './'
 
