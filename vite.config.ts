@@ -35,8 +35,10 @@ export default defineConfig({
       : {}),
 
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server" },
+    // nitro/vite builds from this. Skipped for the static Pages build, whose prerender
+    // preview server expects the default server entry.
+    ...(isGithubPages ? {} : { server: { entry: "server" } }),
+
   },
 });
 
