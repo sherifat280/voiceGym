@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const dirs = ['.output/public', 'dist', 'build'];
+const dirs = ['dist/client', '.output/public', 'dist', 'build'];
 
 for (const dir of dirs) {
   const fullPath = path.resolve(dir);
