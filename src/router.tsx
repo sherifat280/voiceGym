@@ -5,8 +5,12 @@ import { routeTree } from "./routeTree.gen";
 export const getRouter = () => {
   const queryClient = new QueryClient();
 
+  // Strip the trailing slash: "/repo/" -> "/repo" (GitHub Pages subpath), "/" -> "".
+  const basepath = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+
   const router = createRouter({
     routeTree,
+    ...(basepath ? { basepath } : {}),
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
@@ -14,3 +18,4 @@ export const getRouter = () => {
 
   return router;
 };
+
