@@ -20,15 +20,17 @@ const routes = [
   "/achievements",
 ];
 
+const base = process.env['VITE_BASE_PATH'] || process.env['BASE_URL'] || "/";
+
 export default defineConfig({
+  vite: { base },
   ...(isVercel ? { nitro: { preset: "vercel" as const } } : {}),
   // Pages has no server runtime: skip nitro and emit prerendered HTML only.
   ...(isGithubPages ? { nitro: false as const } : {}),
 
   tanstackStart: {
-    vite: {
-      base: process.env['VITE_BASE_PATH'] || process.env['BASE_URL'] || "/",
-    },
+    vite: { base },
+
     ...(isGithubPages
       ? {
           prerender: { enabled: true, crawlLinks: true },
