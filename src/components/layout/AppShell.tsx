@@ -1,11 +1,20 @@
-import { Link } from "@tanstack/react-router";
-import { BarChart3, Home, Medal, Mic, MessageCircleHeart, Menu } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { BarChart3, Home, Medal, Mic, MessageCircleHeart, Menu, LogOut, User } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Brand } from "@/components/layout/SiteChrome";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { learner } from "@/lib/sample-data";
+import { useAuth } from "@/hooks/use-auth";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: Home },
