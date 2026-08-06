@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/voicegym/StatCard";
 import { ConfidenceChart } from "@/components/voicegym/Charts";
 import { dailyChallenge, learner, recentSessions, weeklyProgress } from "@/lib/sample-data";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
