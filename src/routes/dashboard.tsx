@@ -29,9 +29,10 @@ export const Route = createFileRoute("/dashboard")({
 
 function Dashboard() {
   const goalPct = Math.round((learner.minutesToday / learner.dailyGoalMinutes) * 100);
+  const { displayName } = useAuth();
 
   return (
-    <AppShell title={`Hello, ${learner.name}`} subtitle="You're safe here. Let's speak a little today.">
+    <AppShell title={`Hello, ${displayName}`} subtitle="You're safe here. Let's speak a little today.">
       <div className="space-y-8">
         <Card className="surface-glow rounded-[2rem] border-border/60 shadow-soft animate-rise">
           <CardContent className="flex flex-col gap-6 p-7 sm:flex-row sm:items-center sm:justify-between">
