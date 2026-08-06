@@ -14,8 +14,10 @@ import { Route as AchievementsRouteImport } from './routes/achievements'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as PracticeRouteImport } from './routes/practice'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as PronunciationRouteImport } from './routes/pronunciation'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ApiCoachRouteImport } from './routes/api/coach'
 import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
 
@@ -44,6 +46,11 @@ const PracticeRoute = PracticeRouteImport.update({
   path: '/practice',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProgressRoute = ProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
@@ -52,6 +59,11 @@ const ProgressRoute = ProgressRouteImport.update({
 const PronunciationRoute = PronunciationRouteImport.update({
   id: '/pronunciation',
   path: '/pronunciation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCoachRoute = ApiCoachRouteImport.update({
@@ -71,8 +83,10 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/practice': typeof PracticeRoute
+  '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
   '/pronunciation': typeof PronunciationRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/api/coach': typeof ApiCoachRoute
   '/api/transcribe': typeof ApiTranscribeRoute
 }
@@ -82,8 +96,10 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/practice': typeof PracticeRoute
+  '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
   '/pronunciation': typeof PronunciationRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/api/coach': typeof ApiCoachRoute
   '/api/transcribe': typeof ApiTranscribeRoute
 }
@@ -94,8 +110,10 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/practice': typeof PracticeRoute
+  '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
   '/pronunciation': typeof PronunciationRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/api/coach': typeof ApiCoachRoute
   '/api/transcribe': typeof ApiTranscribeRoute
 }
@@ -107,8 +125,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/practice'
+    | '/profile'
     | '/progress'
     | '/pronunciation'
+    | '/reset-password'
     | '/api/coach'
     | '/api/transcribe'
   fileRoutesByTo: FileRoutesByTo
@@ -118,8 +138,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/practice'
+    | '/profile'
     | '/progress'
     | '/pronunciation'
+    | '/reset-password'
     | '/api/coach'
     | '/api/transcribe'
   id:
@@ -129,8 +151,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/practice'
+    | '/profile'
     | '/progress'
     | '/pronunciation'
+    | '/reset-password'
     | '/api/coach'
     | '/api/transcribe'
   fileRoutesById: FileRoutesById
@@ -141,8 +165,10 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
   PracticeRoute: typeof PracticeRoute
+  ProfileRoute: typeof ProfileRoute
   ProgressRoute: typeof ProgressRoute
   PronunciationRoute: typeof PronunciationRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ApiCoachRoute: typeof ApiCoachRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
 }
@@ -184,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PracticeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/progress': {
       id: '/progress'
       path: '/progress'
@@ -196,6 +229,13 @@ declare module '@tanstack/react-router' {
       path: '/pronunciation'
       fullPath: '/pronunciation'
       preLoaderRoute: typeof PronunciationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/coach': {
@@ -221,8 +261,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
   PracticeRoute: PracticeRoute,
+  ProfileRoute: ProfileRoute,
   ProgressRoute: ProgressRoute,
   PronunciationRoute: PronunciationRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ApiCoachRoute: ApiCoachRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
 }
