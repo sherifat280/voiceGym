@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Mic, Send, Sparkles, Volume2 } from "lucide-react";
+import { Loader2, Mic, Send, Sparkles, Square, Volume2 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { conversationTopics, type ConversationTopic } from "@/lib/sample-data";
+import { startRecording, type Recorder } from "@/lib/recorder";
 import { sendToCoach, transcribeSpeech, type CoachMessage } from "@/services/ai";
 
 export const Route = createFileRoute("/practice")({
@@ -79,6 +80,8 @@ function TopicPicker({ onPick }: { onPick: (topic: ConversationTopic) => void })
   );
 }
 
+type Phase = "idle" | "listening" | "transcribing" | "thinking";
+
 function ConversationRoom({
   topic,
   onLeave,
@@ -86,36 +89,87 @@ function ConversationRoom({
   topic: ConversationTopic;
   onLeave: () => void;
 }) {
-  const [messages, setMessages] = useState<CoachMessage[]>([
-    { id: "opener", role: "coach", text: topic.opener },
-  ]);
+  const [messages, setMessages] = useState<CoachMessage[]>([]);
   const [input, setInput] = useState("");
-  const [thinking, setThinking] = useState(false);
-  const [listening, setListening] = useState(false);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [error, setError] = useState<string | null>(null);
+  const recorderRef = useRef<Recorder | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, thinking]);
+  }, [messages, phase]);
 
+  useEffect(() => () => recorderRef.current?.cancel(), []);
+
+  const busy = phase !== "idle";
+
+  /** Adds the learner turn, then asks the coach for exactly one reply. */
   const say = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || thinking) return;
+    if (!trimmed || phase === "thinking") return;
+
+    const history = [
+      ...messages.map((m) => ({ role: m.role, text: m.text })),
+      { role: "learner" as const, text: trimmed },
+    ];
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "learner", text: trimmed }]);
     setInput("");
-    setThinking(true);
-    const reply = await sendToCoach(trimmed, topic.title);
-    setMessages((prev) => [...prev, reply]);
-    setThinking(false);
+    setError(null);
+    setPhase("thinking");
+
+    try {
+      const reply = await sendToCoach(history, topic.title);
+      if (reply) {
+        setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "coach", text: reply }]);
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Something went wrong.");
+    } finally {
+      setPhase("idle");
+    }
   };
 
   const startListening = async () => {
-    if (listening || thinking) return;
-    setListening(true);
-    const transcript = await transcribeSpeech();
-    setListening(false);
-    await say(transcript);
+    if (busy) return;
+    setError(null);
+    try {
+      recorderRef.current = await startRecording();
+      setPhase("listening");
+    } catch {
+      setError("We need microphone access to hear you. Please allow it and try again.");
+      setPhase("idle");
+    }
   };
+
+  const stopListening = async () => {
+    const recorder = recorderRef.current;
+    if (!recorder || phase !== "listening") return;
+    recorderRef.current = null;
+    setPhase("transcribing");
+    try {
+      const audio = await recorder.stop();
+      const transcript = await transcribeSpeech(audio);
+      if (!transcript) {
+        setPhase("idle");
+        setError("I didn't catch anything — tap the mic and speak whenever you're ready.");
+        return;
+      }
+      await say(transcript);
+    } catch (caught) {
+      setPhase("idle");
+      setError(caught instanceof Error ? caught.message : "We couldn't hear that clearly.");
+    }
+  };
+
+  const statusLabel =
+    phase === "listening"
+      ? "Listening…"
+      : phase === "transcribing"
+        ? "Writing down what you said…"
+        : phase === "thinking"
+          ? "Thinking…"
+          : null;
 
   return (
     <div className="space-y-5 animate-rise">
@@ -141,6 +195,17 @@ function ConversationRoom({
       <Card className="rounded-[2rem] border-border/60 shadow-soft">
         <CardContent className="p-0">
           <div className="max-h-[26rem] space-y-4 overflow-y-auto p-6">
+            {messages.length === 0 ? (
+              <div className="rounded-3xl bg-secondary/60 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
+                <p className="font-medium text-foreground">You start whenever you're ready.</p>
+                <p className="mt-1">
+                  Tap the mic and speak, or type instead. Your coach stays quiet until you've
+                  finished — then replies once and waits for you again.
+                </p>
+                <p className="mt-2 italic">Something you could talk about: {topic.opener}</p>
+              </div>
+            ) : null}
+
             {messages.map((message) =>
               message.role === "coach" ? (
                 <div key={message.id} className="max-w-[88%] space-y-2">
@@ -168,15 +233,26 @@ function ConversationRoom({
                 </p>
               ),
             )}
-            {thinking ? (
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" /> Your coach is thinking…
+
+            {statusLabel ? (
+              <p className="flex items-center gap-2 text-sm text-muted-foreground" aria-live="polite">
+                {phase === "listening" ? (
+                  <span className="size-2.5 shrink-0 rounded-full bg-primary animate-breathe" aria-hidden />
+                ) : (
+                  <Loader2 className="size-4 animate-spin" />
+                )}
+                {statusLabel}
               </p>
             ) : null}
             <div ref={endRef} />
           </div>
 
           <div className="border-t border-border/60 p-5">
+            {error ? (
+              <p className="mb-3 rounded-2xl bg-destructive/10 px-4 py-2 text-sm text-destructive" role="alert">
+                {error}
+              </p>
+            ) : null}
             <form
               className="flex items-center gap-2"
               onSubmit={(event) => {
@@ -187,29 +263,43 @@ function ConversationRoom({
               <Button
                 type="button"
                 size="icon"
-                variant={listening ? "default" : "outline"}
+                variant={phase === "listening" ? "default" : "outline"}
                 className="relative size-11 shrink-0 rounded-full"
-                onClick={() => void startListening()}
-                aria-label="Speak your answer"
+                disabled={phase === "transcribing" || phase === "thinking"}
+                onClick={() => void (phase === "listening" ? stopListening() : startListening())}
+                aria-label={phase === "listening" ? "Stop recording" : "Start speaking"}
               >
-                {listening ? (
-                  <span className="absolute inset-0 rounded-full bg-primary/30 animate-breathe" aria-hidden />
-                ) : null}
-                <Mic className="relative size-4" />
+                {phase === "listening" ? (
+                  <>
+                    <span className="absolute inset-0 rounded-full bg-primary/30 animate-breathe" aria-hidden />
+                    <Square className="relative size-4" />
+                  </>
+                ) : (
+                  <Mic className="relative size-4" />
+                )}
               </Button>
               <Input
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
-                placeholder={listening ? "Listening… take your time" : "Speak, or type if you prefer"}
+                disabled={busy}
+                placeholder={
+                  phase === "listening" ? "Listening… tap stop when you're done" : "Speak, or type if you prefer"
+                }
                 className="h-11 rounded-full"
               />
-              <Button type="submit" size="icon" className="size-11 shrink-0 rounded-full" aria-label="Send">
+              <Button
+                type="submit"
+                size="icon"
+                className="size-11 shrink-0 rounded-full"
+                disabled={busy || !input.trim()}
+                aria-label="Send"
+              >
                 <Send className="size-4" />
               </Button>
             </form>
             <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
               <Volume2 className="size-3.5" />
-              Voice replies and live transcription connect through the AI service layer.
+              Your coach only replies after you speak, then waits for your next turn.
             </p>
           </div>
         </CardContent>
@@ -217,3 +307,4 @@ function ConversationRoom({
     </div>
   );
 }
+

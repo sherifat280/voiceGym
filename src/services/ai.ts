@@ -1,10 +1,8 @@
 /**
- * Placeholder AI service layer.
+ * AI service layer.
  *
- * Every function here has the shape it will keep once real providers are
- * connected (Gemini for conversation + feedback, a speech-to-text provider for
- * transcription, and text-to-speech for the coach's voice). Swap the bodies for
- * real server-function calls without touching the UI.
+ * Conversation and speech-to-text are live (server routes backed by Lovable AI).
+ * Text-to-speech and pronunciation analysis are still placeholders.
  */
 
 export type CoachMessage = {
@@ -24,54 +22,48 @@ export type PronunciationReport = {
   suggestion: string;
 };
 
-const encouragements = [
-  "That was clear — I understood you completely.",
-  "Nice, you kept going even when the sentence got long.",
-  "Lovely energy. You sound more relaxed than a minute ago.",
-  "Good one. You used a full sentence without pausing.",
-  "You're doing the hard part: speaking anyway.",
-];
-
-const gentleNotes = [
-  "Tiny thing, whenever you're ready: try \"I have been\" instead of \"I am been\".",
-  "One small idea: add \"because\" and give me a reason — it stretches your sentence naturally.",
-  "If you like, slow down slightly on longer words. No rush at all.",
-  "You could say \"I'd love to\" — it sounds warm and natural.",
-];
-
-const followUps = [
-  "Tell me more about that — what happened next?",
-  "That's interesting. How did that make you feel?",
-  "Great. Can you describe it in a little more detail?",
-  "Nice. And what would you say if someone disagreed with you?",
-  "Thanks for sharing. What's one thing you'd change about it?",
-];
-
-const pick = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)] as T;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** Replace with a Gemini conversation call (streamed) behind a server function. */
-export async function sendToCoach(input: string, topicTitle: string): Promise<CoachMessage> {
-  await delay(700);
-  const shouldNote = input.trim().split(/\s+/).length > 4 && Math.random() > 0.45;
-  return {
-    id: crypto.randomUUID(),
-    role: "coach",
-    text: `${pick(followUps)}`,
-    encouragement: pick(encouragements),
-    gentleNote: shouldNote ? pick(gentleNotes) : undefined,
-  };
+/**
+ * Sends the conversation so far and returns the coach's single reply.
+ * Returns an empty string when the learner has not said anything.
+ */
+export async function sendToCoach(
+  messages: { role: "coach" | "learner"; text: string }[],
+  topicTitle: string,
+): Promise<string> {
+  const response = await fetch("/api/coach", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ topic: topicTitle, messages }),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    if (response.status === 429) throw new Error("Too many requests right now — try again in a moment.");
+    if (response.status === 402) throw new Error("The AI service is out of credits.");
+    throw new Error(detail || "The coach could not reply right now.");
+  }
+
+  const data = (await response.json()) as { text?: string };
+  return (data.text ?? "").trim();
 }
 
-/** Replace with a speech-to-text provider (streaming transcription). */
-export async function transcribeSpeech(): Promise<string> {
-  await delay(1200);
-  return pick([
-    "I think my favourite part of the day is the morning, because it is quiet.",
-    "Yesterday I went to the market with my sister and we bought some fruit.",
-    "I am a little nervous but I want to practise for my interview next week.",
-  ]);
+/** Transcribes a recorded WAV clip. Returns "" when nothing was said. */
+export async function transcribeSpeech(audio: Blob): Promise<string> {
+  const form = new FormData();
+  form.append("audio", audio, "recording.wav");
+
+  const response = await fetch("/api/transcribe", { method: "POST", body: form });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(detail || "We couldn't hear that clearly. Please try again.");
+  }
+
+  const data = (await response.json()) as { text?: string };
+  return (data.text ?? "").trim();
 }
+
 
 /** Replace with a text-to-speech provider; returns an audio URL to play. */
 export async function speak(_text: string): Promise<{ audioUrl: string | null }> {
