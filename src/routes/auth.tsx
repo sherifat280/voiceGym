@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Brand } from "@/components/layout/SiteChrome";
@@ -8,6 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
+import { useAuth } from "@/hooks/use-auth";
 
 type Mode = "login" | "signup" | "forgot";
 
@@ -47,26 +50,80 @@ function GoogleIcon() {
 function AuthPage() {
   const { mode: initialMode } = Route.useSearch();
   const navigate = useNavigate();
+  const { session, loading } = useAuth();
   const [mode, setMode] = useState<Mode>(initialMode ?? "login");
   const [pending, setPending] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const submit = (event: React.FormEvent) => {
+  useEffect(() => {
+    if (!loading && session) navigate({ to: "/dashboard", replace: true });
+  }, [loading, session, navigate]);
+
+  const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setPending(true);
-    setTimeout(() => {
-      setPending(false);
+    try {
       if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
         toast("Check your inbox", {
           description: "If that email exists, a reset link is on its way.",
         });
         setMode("login");
         return;
       }
+
+      if (mode === "signup") {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { display_name: name.trim() },
+          },
+        });
+        if (error) throw error;
+        if (!data.session) {
+          toast("Almost there", {
+            description: "Check your email to confirm your account, then log in.",
+          });
+          setMode("login");
+          return;
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      }
+
       toast("Welcome in — take a breath.", {
         description: "Your coach is ready whenever you are.",
       });
       navigate({ to: "/dashboard" });
-    }, 900);
+    } catch (error) {
+      toast("That didn't work", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    setPending(true);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setPending(false);
+      toast("Google sign-in failed", { description: "Please try again." });
+      return;
+    }
+    if (result.redirected) return;
+    navigate({ to: "/dashboard" });
   };
 
   return (
@@ -112,7 +169,14 @@ function AuthPage() {
               {mode === "signup" ? (
                 <div className="space-y-2">
                   <Label htmlFor="name">First name</Label>
-                  <Input id="name" placeholder="Amara" required className="h-11 rounded-xl" />
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    placeholder="Your name"
+                    required
+                    className="h-11 rounded-xl"
+                  />
                 </div>
               ) : null}
               <div className="space-y-2">
@@ -120,6 +184,8 @@ function AuthPage() {
                 <Input
                   id="email"
                   type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                   placeholder="you@example.com"
                   required
                   className="h-11 rounded-xl"
@@ -142,8 +208,11 @@ function AuthPage() {
                   <Input
                     id="password"
                     type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
                     placeholder="••••••••"
                     required
+                    minLength={6}
                     className="h-11 rounded-xl"
                   />
                 </div>
@@ -169,11 +238,8 @@ function AuthPage() {
                 <Button
                   variant="outline"
                   className="h-11 w-full rounded-full"
-                  onClick={() =>
-                    toast("Google sign-in is ready to connect", {
-                      description: "Hook it up to your auth provider to go live.",
-                    })
-                  }
+                  disabled={pending}
+                  onClick={signInWithGoogle}
                 >
                   <GoogleIcon />
                   Continue with Google
