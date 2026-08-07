@@ -1,9 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Medal } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { achievements } from "@/lib/sample-data";
+import { EmptyState } from "@/components/voicegym/EmptyState";
+import { buildAchievements } from "@/lib/progress";
+import { useProgress } from "@/hooks/use-progress";
 
 export const Route = createFileRoute("/achievements")({
   head: () => ({
@@ -12,7 +16,7 @@ export const Route = createFileRoute("/achievements")({
       {
         name: "description",
         content:
-          "Unlock badges for bravery: First Conversation, Brave Speaker, Fear Conqueror and more.",
+          "Earn badges for bravery: First Conversation, Brave Speaker, streaks and more — unlocked only by real practice.",
       },
       { property: "og:title", content: "Achievements — VoiceGym" },
       {
@@ -25,6 +29,8 @@ export const Route = createFileRoute("/achievements")({
 });
 
 function Achievements() {
+  const { stats, loading } = useProgress();
+  const achievements = buildAchievements(stats);
   const unlocked = achievements.filter((a) => a.unlocked).length;
 
   return (
@@ -33,21 +39,34 @@ function Achievements() {
         <Card className="surface-glow rounded-[2rem] border-border/60 shadow-soft animate-rise">
           <CardContent className="space-y-2 p-7">
             <h2 className="text-2xl font-semibold">
-              {unlocked} of {achievements.length} unlocked
+              {loading ? "…" : `${unlocked} of ${achievements.length} unlocked`}
             </h2>
             <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Every badge here was earned by speaking when it felt uncomfortable. That's the whole
-              skill.
+              Every badge here is earned by speaking when it feels uncomfortable. Nothing is
+              unlocked for you in advance.
             </p>
           </CardContent>
         </Card>
+
+        {!loading && !stats.hasActivity ? (
+          <EmptyState
+            icon={Medal}
+            title="No badges yet — and that's fine"
+            description="Your first badge unlocks the moment you finish your very first conversation."
+            action={
+              <Button asChild className="rounded-full">
+                <Link to="/practice">Start speaking</Link>
+              </Button>
+            }
+          />
+        ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {achievements.map((achievement) => (
             <Card
               key={achievement.id}
               className={`rounded-3xl shadow-soft transition-transform duration-300 hover:-translate-y-1 ${
-                achievement.unlocked ? "border-primary/30 bg-primary-soft/40" : "border-border/60"
+                achievement.unlocked ? "border-primary/30 bg-primary-soft/50" : "border-border/60"
               }`}
             >
               <CardContent className="space-y-3 p-6">
@@ -56,7 +75,11 @@ function Achievements() {
                     {achievement.emoji}
                   </span>
                   <Badge variant={achievement.unlocked ? "default" : "secondary"} className="rounded-full">
-                    {achievement.unlocked ? "Unlocked" : "In progress"}
+                    {achievement.unlocked
+                      ? "Unlocked"
+                      : achievement.progress > 0
+                        ? "In progress"
+                        : "Not started"}
                   </Badge>
                 </div>
                 <div>
@@ -65,7 +88,7 @@ function Achievements() {
                     {achievement.description}
                   </p>
                 </div>
-                {!achievement.unlocked && achievement.progress !== undefined ? (
+                {!achievement.unlocked ? (
                   <div className="space-y-1.5 pt-1">
                     <Progress value={achievement.progress} className="h-2" />
                     <p className="text-xs text-muted-foreground">{achievement.progress}% there</p>

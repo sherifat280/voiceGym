@@ -13,8 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { learner } from "@/lib/sample-data";
 import { useAuth } from "@/hooks/use-auth";
+import { useProgress } from "@/hooks/use-progress";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: Home },
@@ -54,6 +54,7 @@ export function AppShell({
 }) {
   const [open, setOpen] = useState(false);
   const { displayName, initials, avatarUrl, session, signOut } = useAuth();
+  const { stats } = useProgress();
   const navigate = useNavigate();
 
   return (
@@ -64,7 +65,11 @@ export function AppShell({
           <NavList />
         </div>
         <div className="mt-auto rounded-3xl bg-primary-soft/70 p-4">
-          <p className="text-sm font-semibold">You're on a {learner.streakDays}-day streak</p>
+          <p className="text-sm font-semibold">
+            {stats.streakDays > 0
+              ? `You're on a ${stats.streakDays}-day streak`
+              : "Your streak starts today"}
+          </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Showing up matters more than sounding perfect.
           </p>
