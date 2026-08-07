@@ -6,9 +6,10 @@
 
 /*
  * VoiceGym design system.
- * Calm, warm, non-judgmental. Sand backgrounds, deep teal primary,
- * apricot accent. All colors are oklch semantic tokens.
+ * Premium, calm and modern: deep elegant blue primary, soft blue surfaces,
+ * navy text. All colors are oklch semantic tokens.
  */
+
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
