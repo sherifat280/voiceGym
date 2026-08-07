@@ -20,7 +20,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { conversationTopics, faqs, pricing, testimonials } from "@/lib/sample-data";
+import { conversationTopics, faqs, testimonials } from "@/lib/sample-data";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -73,6 +73,15 @@ const features = [
     title: "Encouragement First",
     body: "Every piece of feedback starts with what you did well, then offers one gentle idea to try next.",
   },
+];
+
+const freeIncludes = [
+  "Unlimited AI conversations, every day",
+  "Every conversation topic, including interview prep",
+  "Pronunciation coach with stress, rhythm and intonation",
+  "Full progress dashboard and monthly reports",
+  "Every achievement and custom goal",
+  "Private sessions you can delete any time",
 ];
 
 function Landing() {
