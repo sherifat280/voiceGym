@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Loader2, Mic, Sparkles } from "lucide-react";
+import { BarChart3, Loader2, Mic, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { pronunciationBreakdown, pronunciationWords } from "@/lib/sample-data";
+import { EmptyState } from "@/components/voicegym/EmptyState";
 import { analysePronunciation, type PronunciationReport } from "@/services/ai";
+import { logPracticeSession, useProgress } from "@/hooks/use-progress";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/pronunciation")({
   head: () => ({
@@ -30,22 +32,53 @@ export const Route = createFileRoute("/pronunciation")({
 
 const practicePhrase = "I'd really appreciate the opportunity to work with your team.";
 
+const metricHints: Record<string, string> = {
+  Accuracy: "How closely your sounds matched the phrase.",
+  Stress: "Which syllables you leaned on.",
+  Intonation: "How your pitch moved through the sentence.",
+  Rhythm: "Your pacing and pauses.",
+};
+
 function Pronunciation() {
   const [report, setReport] = useState<PronunciationReport | null>(null);
   const [analysing, setAnalysing] = useState(false);
+  const { user } = useAuth();
+  const { stats, loading, refresh } = useProgress();
 
   const run = async () => {
     setAnalysing(true);
+    const started = Date.now();
     const result = await analysePronunciation(practicePhrase);
     setReport(result);
     setAnalysing(false);
+
+    if (user) {
+      await logPracticeSession(user.id, {
+        kind: "pronunciation",
+        topic: "Pronunciation drill",
+        durationSeconds: Math.max(20, Math.round((Date.now() - started) / 1000)),
+        turns: 1,
+        wordsSpoken: practicePhrase.split(/\s+/).length,
+        confidence: result.accuracy,
+        accuracy: result.accuracy,
+        stress: result.stress,
+        intonation: result.intonation,
+        rhythm: result.rhythm,
+        note: result.suggestion,
+      });
+      await refresh();
+    }
   };
 
+  const averages = [
+    ["Accuracy", stats.pronunciation.accuracy],
+    ["Stress", stats.pronunciation.stress],
+    ["Intonation", stats.pronunciation.intonation],
+    ["Rhythm", stats.pronunciation.rhythm],
+  ] as const;
+
   return (
-    <AppShell
-      title="Pronunciation Coach"
-      subtitle="Clear is the goal. Perfect is not required."
-    >
+    <AppShell title="Pronunciation Coach" subtitle="Clear is the goal. Perfect is not required.">
       <div className="space-y-6">
         <Card className="surface-glow rounded-[2rem] border-border/60 shadow-soft animate-rise">
           <CardContent className="space-y-5 p-7">
@@ -95,43 +128,36 @@ function Pronunciation() {
           </Card>
         ) : null}
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="rounded-3xl border-border/60 shadow-soft">
-            <CardContent className="space-y-5 p-6">
-              <h3 className="text-lg font-semibold">Your recent averages</h3>
-              {pronunciationBreakdown.map((item) => (
-                <div key={item.metric} className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">{item.metric}</span>
-                    <span className="text-muted-foreground">{item.score}</span>
-                  </div>
-                  <Progress value={item.score} className="h-2.5" />
-                  <p className="text-xs leading-relaxed text-muted-foreground">{item.hint}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl border-border/60 shadow-soft">
-            <CardContent className="space-y-4 p-6">
-              <h3 className="text-lg font-semibold">Words worth one more try</h3>
+        <Card className="rounded-3xl border-border/60 shadow-soft">
+          <CardContent className="space-y-5 p-6">
+            <div>
+              <h3 className="text-lg font-semibold">Your averages</h3>
               <p className="text-sm text-muted-foreground">
-                These aren't mistakes — they're just the next small wins.
+                From your last {Math.min(10, stats.pronunciationExercises)} pronunciation exercises.
               </p>
-              <div className="space-y-3">
-                {pronunciationWords.map((word) => (
-                  <div key={word.word} className="rounded-2xl bg-secondary/60 p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium">{word.word}</p>
-                      <Badge variant="secondary" className="rounded-full">{word.score}</Badge>
-                    </div>
-                    <p className="mt-1 text-sm text-muted-foreground">{word.tip}</p>
+            </div>
+            {loading ? (
+              <div className="h-24 animate-pulse rounded-2xl bg-secondary/70" />
+            ) : stats.pronunciationExercises === 0 ? (
+              <EmptyState
+                icon={BarChart3}
+                title="Nothing to score yet"
+                description="Record the phrase above once and your accuracy, stress, intonation and rhythm averages will appear here."
+              />
+            ) : (
+              averages.map(([metric, score]) => (
+                <div key={metric} className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">{metric}</span>
+                    <span className="text-muted-foreground">{score ?? "—"}</span>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                  <Progress value={score ?? 0} className="h-2.5" />
+                  <p className="text-xs leading-relaxed text-muted-foreground">{metricHints[metric]}</p>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
       </div>
     </AppShell>
   );
