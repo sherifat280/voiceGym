@@ -78,7 +78,7 @@ export function MinutesChart({ data }: { data: { label: string; minutes: number 
 export function MonthlyChart({
   data,
 }: {
-  data: { label: string; confidence: number; vocabulary: number }[];
+  data: { label: string; confidence: number; sessions: number }[];
 }) {
   return (
     <div className="h-64 w-full">
@@ -89,7 +89,8 @@ export function MonthlyChart({
           <YAxis {...axisProps} />
           <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: "var(--border)" }} />
           <Line type="monotone" dataKey="confidence" stroke="var(--chart-1)" strokeWidth={3} dot={false} />
-          <Line type="monotone" dataKey="vocabulary" stroke="var(--chart-3)" strokeWidth={3} dot={false} />
+          <Line type="monotone" dataKey="sessions" stroke="var(--chart-3)" strokeWidth={3} dot={false} />
+
         </LineChart>
       </ResponsiveContainer>
     </div>
