@@ -44,7 +44,7 @@ export function ConfidenceChart({
           </defs>
           <CartesianGrid strokeDasharray="4 6" stroke="var(--border)" vertical={false} />
           <XAxis dataKey="label" {...axisProps} />
-          <YAxis domain={[40, 100]} {...axisProps} />
+          <YAxis domain={[0, 100]} {...axisProps} />
           <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: "var(--border)" }} />
           <Area
             type="monotone"
