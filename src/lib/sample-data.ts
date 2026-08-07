@@ -242,37 +242,3 @@ export const faqs = [
     a: "Ten to fifteen minutes is plenty. Consistency builds confidence far more than long, occasional sessions.",
   },
 ];
-
-export const pricing = [
-  {
-    name: "Free",
-    price: "$0",
-    cadence: "forever",
-    description: "Everything you need to start speaking today.",
-    features: [
-      "1 AI conversation per day",
-      "3 conversation topics",
-      "Daily speaking challenge",
-      "Confidence tracker",
-      "Streaks and basic badges",
-    ],
-    cta: "Start Speaking Free",
-    highlight: false,
-  },
-  {
-    name: "Premium",
-    price: "$9",
-    cadence: "per month",
-    description: "For learners preparing for something that matters.",
-    features: [
-      "Unlimited AI conversations",
-      "All topics, including interview prep",
-      "Pronunciation coach with stress & intonation",
-      "Full progress dashboard and monthly reports",
-      "All achievements and custom goals",
-      "Priority voice response speed",
-    ],
-    cta: "Try Premium",
-    highlight: true,
-  },
-];

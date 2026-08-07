@@ -20,7 +20,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { conversationTopics, faqs, pricing, testimonials } from "@/lib/sample-data";
+import { conversationTopics, faqs, testimonials } from "@/lib/sample-data";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -73,6 +73,15 @@ const features = [
     title: "Encouragement First",
     body: "Every piece of feedback starts with what you did well, then offers one gentle idea to try next.",
   },
+];
+
+const freeIncludes = [
+  "Unlimited AI conversations, every day",
+  "Every conversation topic, including interview prep",
+  "Pronunciation coach with stress, rhythm and intonation",
+  "Full progress dashboard and monthly reports",
+  "Every achievement and custom goal",
+  "Private sessions you can delete any time",
 ];
 
 function Landing() {
@@ -215,53 +224,28 @@ function Landing() {
         </div>
       </section>
 
-      <section id="pricing" className="mx-auto w-full max-w-6xl px-5 py-12">
-        <h2 className="text-3xl font-semibold sm:text-4xl">Simple, kind pricing</h2>
-        <p className="mt-3 text-muted-foreground">Start free. Upgrade only if you need more rooms.</p>
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          {pricing.map((plan) => (
-            <Card
-              key={plan.name}
-              className={`relative rounded-[2rem] shadow-soft ${
-                plan.highlight ? "border-primary/40 bg-primary-soft/40 shadow-lift" : "border-border/60"
-              }`}
-            >
-              <CardContent className="space-y-6 p-8">
-                {plan.highlight ? (
-                  <Badge className="absolute right-6 top-6 rounded-full">Most chosen</Badge>
-                ) : null}
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                    {plan.name}
-                  </p>
-                  <p className="mt-3 font-display text-4xl font-semibold">
-                    {plan.price}
-                    <span className="ml-2 text-sm font-normal text-muted-foreground">
-                      {plan.cadence}
-                    </span>
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">{plan.description}</p>
-                </div>
-                <ul className="space-y-3 text-sm">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3">
-                      <Check className="mt-0.5 size-4 shrink-0 text-success" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  asChild
-                  variant={plan.highlight ? "default" : "outline"}
-                  className="w-full rounded-full"
-                >
-                  <Link to="/auth" search={{ mode: "signup" }}>{plan.cta}</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      <section className="mx-auto w-full max-w-6xl px-5 py-12">
+        <h2 className="text-3xl font-semibold sm:text-4xl">Everything is free. Always.</h2>
+        <p className="mt-3 text-muted-foreground">
+          No plans, no cards, no locked rooms. Sign in and every feature is already yours.
+        </p>
+        <Card className="mt-8 rounded-[2rem] border-primary/30 bg-primary-soft/40 shadow-lift">
+          <CardContent className="p-8">
+            <ul className="grid gap-3 text-sm sm:grid-cols-2">
+              {freeIncludes.map((item) => (
+                <li key={item} className="flex items-start gap-3">
+                  <Check className="mt-0.5 size-4 shrink-0 text-success" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <Button asChild className="mt-8 rounded-full px-7">
+              <Link to="/auth" search={{ mode: "signup" }}>Start Speaking Free</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </section>
+
 
       <section className="mx-auto w-full max-w-3xl px-5 py-12">
         <h2 className="text-3xl font-semibold sm:text-4xl">Questions people ask us</h2>
