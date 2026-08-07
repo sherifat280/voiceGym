@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      practice_sessions: {
+        Row: {
+          accuracy: number | null
+          confidence: number | null
+          created_at: string
+          duration_seconds: number
+          id: string
+          intonation: number | null
+          kind: string
+          note: string | null
+          rhythm: number | null
+          stress: number | null
+          topic: string | null
+          turns: number
+          user_id: string
+          words_spoken: number
+        }
+        Insert: {
+          accuracy?: number | null
+          confidence?: number | null
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          intonation?: number | null
+          kind: string
+          note?: string | null
+          rhythm?: number | null
+          stress?: number | null
+          topic?: string | null
+          turns?: number
+          user_id: string
+          words_spoken?: number
+        }
+        Update: {
+          accuracy?: number | null
+          confidence?: number | null
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          intonation?: number | null
+          kind?: string
+          note?: string | null
+          rhythm?: number | null
+          stress?: number | null
+          topic?: string | null
+          turns?: number
+          user_id?: string
+          words_spoken?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
