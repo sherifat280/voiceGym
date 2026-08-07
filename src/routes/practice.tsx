@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { conversationTopics, type ConversationTopic } from "@/lib/sample-data";
 import { startRecording, type Recorder } from "@/lib/recorder";
 import { sendToCoach, transcribeSpeech, type CoachMessage } from "@/services/ai";
+import { logPracticeSession } from "@/hooks/use-progress";
+import { useAuth } from "@/hooks/use-auth";
+import { confidenceFromActivity } from "@/lib/progress";
 
 export const Route = createFileRoute("/practice")({
   head: () => ({
@@ -95,12 +98,39 @@ function ConversationRoom({
   const [error, setError] = useState<string | null>(null);
   const recorderRef = useRef<Recorder | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const startedAtRef = useRef<number>(Date.now());
+  const activityRef = useRef({ turns: 0, words: 0 });
+  const savedRef = useRef(false);
+
+  /** Saves the session only when the learner genuinely spoke at least once. */
+  const saveSession = async () => {
+    const { turns, words } = activityRef.current;
+    if (savedRef.current || !user || turns === 0) return;
+    savedRef.current = true;
+    await logPracticeSession(user.id, {
+      kind: "conversation",
+      topic: topic.title,
+      durationSeconds: Math.round((Date.now() - startedAtRef.current) / 1000),
+      turns,
+      wordsSpoken: words,
+      confidence: confidenceFromActivity(turns, words),
+      note: `You took ${turns} speaking ${turns === 1 ? "turn" : "turns"} in this conversation.`,
+    });
+  };
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, phase]);
 
-  useEffect(() => () => recorderRef.current?.cancel(), []);
+  useEffect(
+    () => () => {
+      recorderRef.current?.cancel();
+      void saveSession();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   const busy = phase !== "idle";
 
@@ -113,6 +143,10 @@ function ConversationRoom({
       ...messages.map((m) => ({ role: m.role, text: m.text })),
       { role: "learner" as const, text: trimmed },
     ];
+    activityRef.current = {
+      turns: activityRef.current.turns + 1,
+      words: activityRef.current.words + trimmed.split(/\s+/).filter(Boolean).length,
+    };
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "learner", text: trimmed }]);
     setInput("");
     setError(null);
@@ -186,7 +220,13 @@ function ConversationRoom({
               </p>
             </div>
           </div>
-          <Button variant="ghost" className="rounded-full" onClick={onLeave}>
+          <Button
+            variant="ghost"
+            className="rounded-full"
+            onClick={() => {
+              void saveSession().then(onLeave);
+            }}
+          >
             Choose another topic
           </Button>
         </CardContent>
